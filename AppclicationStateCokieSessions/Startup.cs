@@ -16,6 +16,13 @@ namespace AppclicationStateCokieSessions
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDistributedMemoryCache();
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromSeconds(10);
+                options.Cookie.Name = "SessionTesting";
+                options.Cookie.IsEssential = true;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -26,17 +33,25 @@ namespace AppclicationStateCokieSessions
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseSession();
 
             app.Run(async context =>
             {
-                if (context.Request.Cookies.ContainsKey("myName"))
-                    await context.Response.WriteAsync($"My name {context.Request.Cookies["myName"]}");
+                if (context.Session.Keys.Contains("person"))
+                {
+                    Person person = context.Session.Get<Person>("person");
+                    await context.Response.WriteAsync($"My Name {person.Name}, I'm {person.Age.ToString()} years old");
+                }
                 else
                 {
-                    context.Response.Cookies.Append("myName", "Alex");
+                    Person person = new Person()
+                    {
+                        Name = "Alex",
+                        Age = 19
+                    };
+                    context.Session.Set<Person>("person", person);
                     await context.Response.WriteAsync("Hello world");
                 }
-
             });
         }
     }
