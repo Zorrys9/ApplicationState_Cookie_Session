@@ -26,30 +26,17 @@ namespace AppclicationStateCokieSessions
                 app.UseDeveloperExceptionPage();
             }
 
-            app.Use(async (context, next) =>
-            {
-                context.Items.Add("cntMiddleware",1);
-                await next.Invoke();
-            });
-            app.Use(async (context, next) =>
-            {
-                int cnt = ((int)context.Items["cntMiddleware"]);
-                context.Items["cntMiddleware"] = ++cnt;
-                await next.Invoke();
-            });
-            app.Use(async (context, next) =>
-            {
-                int cnt = ((int)context.Items["cntMiddleware"]);
-                context.Items["cntMiddleware"] = ++cnt;
-                await next.Invoke();
-            });
+
             app.Run(async context =>
             {
-                object cnt = 0;
-                if (context.Items.ContainsKey("cntMiddleware"))
-                    await context.Response.WriteAsync($"here are {context.Items["cntMiddleware"]} Middleware other than this");
+                if (context.Request.Cookies.ContainsKey("myName"))
+                    await context.Response.WriteAsync($"My name {context.Request.Cookies["myName"]}");
                 else
-                    await context.Response.WriteAsync($"Hello world =)");
+                {
+                    context.Response.Cookies.Append("myName", "Alex");
+                    await context.Response.WriteAsync("Hello world");
+                }
+
             });
         }
     }
